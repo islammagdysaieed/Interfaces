@@ -5,17 +5,9 @@
 #include "pot/stack.h"
 
 #define NEW(t) (t*)malloc(sizeof(t));
+#define FREE(t) {free(t); t = NULL; } 
 
-struct Stack_T
-{
-	int count;
 
-	struct Node
-	{
-		void* data;
-		struct Node* next;
-	}*head;
-};
 
 Stack_T stack_new(void)
 {
@@ -38,15 +30,39 @@ void stack_push(Stack_T stk, void* data)
 }
 
 
-void *stack_pop(Stack_T stk)
+void* stack_pop(Stack_T stk)
 {
 	assert(stk);
 	assert(stk->count);
-	void* ret= stk->head->data;
+	
+	void* ret;
+	struct Node* tmp;
 
+	tmp = stk->head;
+	stk->head = tmp->next;
+	ret = tmp->data;
+	FREE(tmp);
+	stk->count--;
+	
+	return ret;
 }
-void stack_free(Stack_T* stk)
+
+int
+stack_empty(Stack_T stk)
 {
 	assert(stk);
-	free(stk);
+	return stk->count == 0;
+}
+
+void stack_free(Stack_T stk)
+{
+	assert(stk);
+	struct Node *t, *u;
+
+	for (t = stk->head; t; stk->head = t) {
+		t = t->next;
+		FREE(stk->head);
+	}
+
+	FREE(stk);
 }
